@@ -1,0 +1,98 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "CRM API Gateway",
+    "version": "1.0.0",
+    "description": "API Gateway for CRM Microservices"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Get health status of all services",
+        "responses": {
+          "200": {
+            "description": "Health status of all services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["healthy", "unhealthy"]
+                    },
+                    "services": {
+                      "type": "object",
+                      "properties": {
+                        "user": {
+                          "type": "string",
+                          "enum": ["healthy", "unhealthy"]
+                        },
+                        "customer": {
+                          "type": "string",
+                          "enum": ["healthy", "unhealthy"]
+                        },
+                        "sales": {
+                          "type": "string",
+                          "enum": ["healthy", "unhealthy"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/*": {
+      "description": "All user service endpoints",
+      "get": {
+        "summary": "Proxy to user service",
+        "responses": {
+          "200": {
+            "description": "Successful response from user service"
+          }
+        }
+      }
+    },
+    "/api/customers/*": {
+      "description": "All customer service endpoints",
+      "get": {
+        "summary": "Proxy to customer service",
+        "responses": {
+          "200": {
+            "description": "Successful response from customer service"
+          }
+        }
+      }
+    },
+    "/api/sales/*": {
+      "description": "All sales service endpoints",
+      "get": {
+        "summary": "Proxy to sales service",
+        "responses": {
+          "200": {
+            "description": "Successful response from sales service"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
