@@ -52,35 +52,296 @@
         }
       }
     },
-    "/api/users/*": {
-      "description": "All user service endpoints",
-      "get": {
-        "summary": "Proxy to user service",
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Register a new user",
+        "description": "Create a new user account with the provided details",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password", "firstName", "lastName"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email address"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "description": "User's password (min 8 characters)"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "description": "User's first name"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "description": "User's last name"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["user", "admin"],
+                    "default": "user",
+                    "description": "User's role"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "Successful response from user service"
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
           }
         }
       }
     },
-    "/api/customers/*": {
-      "description": "All customer service endpoints",
-      "get": {
-        "summary": "Proxy to customer service",
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Login user",
+        "description": "Authenticate user and get JWT token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Successful response from customer service"
+            "description": "Login successful"
+          },
+          "401": {
+            "description": "Invalid credentials"
           }
         }
       }
     },
-    "/api/sales/*": {
-      "description": "All sales service endpoints",
+    "/api/customers": {
+      "post": {
+        "tags": ["Customers"],
+        "summary": "Create a new customer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Customer's full name"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Customer's email address"
+                  },
+                  "phone": {
+                    "type": "string",
+                    "description": "Customer's phone number"
+                  },
+                  "address": {
+                    "type": "string",
+                    "description": "Customer's address"
+                  },
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Tags associated with the customer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Customer created successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
       "get": {
-        "summary": "Proxy to sales service",
+        "tags": ["Customers"],
+        "summary": "Get all customers",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful response from sales service"
+            "description": "List of customers"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/sales": {
+      "post": {
+        "tags": ["Sales"],
+        "summary": "Create a new sale opportunity",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["customerId", "title", "description", "value"],
+                "properties": {
+                  "customerId": {
+                    "type": "string",
+                    "description": "ID of the customer this sale is associated with"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "Title of the sale opportunity",
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed description of the sale opportunity"
+                  },
+                  "value": {
+                    "type": "number",
+                    "description": "Monetary value of the sale",
+                    "minimum": 0
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["NEW", "QUALIFIED", "PROPOSITION", "NEGOTIATION", "CLOSED_WON", "CLOSED_LOST"],
+                    "default": "NEW",
+                    "description": "Current status of the sale"
+                  },
+                  "expectedClosingDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Expected date when the sale will close"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sale created successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Sales"],
+        "summary": "Get all sales",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": ["NEW", "QUALIFIED", "PROPOSITION", "NEGOTIATION", "CLOSED_WON", "CLOSED_LOST"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of sales"
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       }
@@ -94,5 +355,19 @@
         "bearerFormat": "JWT"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication endpoints"
+    },
+    {
+      "name": "Customers",
+      "description": "Customer management endpoints"
+    },
+    {
+      "name": "Sales",
+      "description": "Sales management endpoints"
+    }
+  ]
 }

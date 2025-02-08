@@ -20,7 +20,7 @@ mongoose.connect(MONGODB_URI)
   .catch((err) => console.error('MongoDB connection error:', err));
 
 // Routes
-app.use('/api/v1/sales', saleRoutes);
+app.use('/api/sales', saleRoutes);
 
 if (process.env.NODE_ENV !== 'production') {
   const swaggerDocument = require('../swagger.json');

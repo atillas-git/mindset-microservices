@@ -11,23 +11,22 @@ const services: ServicesConfig = {
   user: {
     url: process.env.USER_SERVICE_URL || 'http://localhost:3001',
     routes: [
-      '/api/auth/register',
-      '/api/auth/login',
-      '/api/users',
-      '/api/users/profile'
+      '/auth/register',
+      '/auth/login',
+      '/users/profile',
+      '/users'
     ]
   },
   customer: {
     url: process.env.CUSTOMER_SERVICE_URL || 'http://localhost:3002',
     routes: [
-      '/api/customers',
-      '/api/customers/tags'
+      '/customers'
     ]
   },
   sales: {
     url: process.env.SALES_SERVICE_URL || 'http://localhost:3003',
     routes: [
-      '/api/sales'
+      '/sales'
     ]
   }
 };

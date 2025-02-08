@@ -1,0 +1,7 @@
+{
+  "createOnly": false,
+  "migrateInTransaction": true,
+  "fullDatabaseReset": false,
+  "skipGenerateClient": false,
+  "skipSeed": false
+}

@@ -1,24 +1,34 @@
-FROM node:20-alpine
+FROM node:18-slim
 
 WORKDIR /app
 
-# Install OpenSSL and other dependencies
-RUN apk add --no-cache openssl postgresql-client
+# Install necessary tools and dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    netcat-openbsd \
+    openssl \
+    wget \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-COPY prisma ./prisma/
-
 RUN npm install
 
+COPY prisma ./prisma/
+COPY scripts ./scripts/
+COPY wait-for-it.sh ./
 COPY . .
 
-RUN npm run build
+# Make scripts executable
+RUN chmod +x ./wait-for-it.sh
+RUN chmod +x ./scripts/migrate.sh
+
+# Generate Prisma Client during build
 RUN npx prisma generate
+
+RUN npm run build
 
 EXPOSE 3002
 
-# Add wait-for-it script
-COPY wait-for-db.sh /wait-for-db.sh
-RUN chmod +x /wait-for-db.sh
-
-CMD ["/wait-for-db.sh", "customer-db", "5432", "npx", "prisma", "migrate", "deploy", "&&", "npm", "start"]
+# Run migrations and start the application
+CMD ["sh", "-c", "./scripts/migrate.sh && npm start"]

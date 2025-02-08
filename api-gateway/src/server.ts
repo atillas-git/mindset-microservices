@@ -32,13 +32,23 @@ app.use('/api', routeRequest);
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   logger.error('Error:', err);
   
+  // Handle proxy errors
+  if (err.code === 'ECONNREFUSED') {
+    return res.status(503).json({
+      status: 'error',
+      message: 'Service unavailable',
+      error: 'Could not connect to the target service'
+    });
+  }
+  
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
   
   res.status(statusCode).json({
     status: 'error',
     statusCode,
-    message
+    message,
+    path: req.path
   });
 });
 

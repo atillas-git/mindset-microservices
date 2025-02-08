@@ -5,6 +5,7 @@ import { json } from 'body-parser';
 import { connectDatabase } from './config/database';
 import { logger } from './config/logger';
 import userRoutes from './routes/user.routes';
+import authRoutes from './routes/auth.routes';
 import { createRateLimiter } from './config/rate-limiter';
 import { errorHandler } from './middleware/error.middleware';
 import mongoose from 'mongoose';
@@ -45,8 +46,14 @@ if (process.env.NODE_ENV !== 'production') {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 }
 
-app.use('/api/v1/users', userRoutes);
+// Mount routes without /api prefix since it's stripped by the gateway
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 
+// Error handling middleware
+app.use(errorHandler);
+
+// Handle 404 errors
 app.use((req, res) => {
   res.status(404).json({ 
     error: {
@@ -55,8 +62,6 @@ app.use((req, res) => {
     }
   });
 });
-
-app.use(errorHandler);
 
 connectDatabase();
 app.listen(port, () => {

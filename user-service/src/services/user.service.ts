@@ -10,14 +10,15 @@ export class UserService {
     if (existingUser) {
       throw new CustomError('Email already exists', 400);
     }
-    
     const user = new User(userData);
-    await user.save();
-    return user;
+    const savedUser = await user.save();
+    const userObj = savedUser.toObject();
+    userObj.password = "";
+    return userObj;
   }
 
   async authenticateUser(email: string, password: string): Promise<{ user: IUser; token: string }> {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     if (!user || !await bcrypt.compare(password, user.password)) {
       throw new CustomError('Invalid credentials', 401);
     }
@@ -28,7 +29,10 @@ export class UserService {
       { expiresIn: '24h' }
     );
 
-    return { user, token };
+    const userObj = user.toObject();
+    userObj.password = "";
+
+    return { user: userObj, token };
   }
 
   async getUserById(id: string): Promise<IUser> {
@@ -36,19 +40,30 @@ export class UserService {
     if (!user) {
       throw new CustomError('User not found', 404);
     }
-    return user;
+    const userObj = user.toObject();
+    userObj.password = "";
+    return userObj;
   }
 
   async updateUser(id: string, updateData: Partial<IUser>): Promise<IUser> {
+    // Remove password from updateData if present
+    if (updateData.password) {
+      delete updateData.password;
+    }
+
     const user = await User.findByIdAndUpdate(
       id,
-      { ...updateData, updatedAt: new Date() },
-      { new: true }
+      { $set: updateData },
+      { new: true, runValidators: true }
     );
+
     if (!user) {
       throw new CustomError('User not found', 404);
     }
-    return user;
+
+    const userObj = user.toObject();
+    userObj.password = "";
+    return userObj;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -58,13 +73,32 @@ export class UserService {
     }
   }
 
-  async listUsers(filters: Record<string, any> = {}, options: { page?: number; limit?: number; }): Promise<IUser[]> {
-    const { page, limit } = options;
-    const query = User.find(filters)
-    if(page && limit){
-      query.skip((page - 1) * limit).limit(limit);
-    }
-    const users = await query.exec();
-    return users;
+  async listUsers(
+    filters: Record<string, any> = {},
+    { page = 1, limit = 10 } = {}
+  ): Promise<{
+    users: IUser[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const skip = (page - 1) * limit;
+    const [users, total] = await Promise.all([
+      User.find(filters).skip(skip).limit(limit).exec(),
+      User.countDocuments(filters)
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+    
+    return {
+      users: users.map(user => {
+        const userObj = user.toObject();
+        userObj.password = '';
+        return userObj;
+      }),
+      total,
+      page,
+      totalPages
+    };
   }
 }

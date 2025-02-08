@@ -1,0 +1,9 @@
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:32:21.093Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:32:45.582Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:34:23.556Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:34:29.909Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:35:00.782Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:36:21.951Z"}
+{"level":"info","message":"API Gateway running on port 3000","timestamp":"2025-02-08T12:36:26.415Z"}
+{"level":"info","message":"Proxying POST /api/auth/register to user service","timestamp":"2025-02-08T12:36:31.395Z"}
+{"level":"error","message":"Proxy error for POST /api/auth/register: ","timestamp":"2025-02-08T12:36:31.400Z"}

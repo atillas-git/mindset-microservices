@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/user.service';
 import { loginSchema, registerSchema, updateSchema, validateUser } from '../validators/user.validator';
 import { CustomError, AuthenticationError } from '../utils/custom-error';
-
+import bcrypt from 'bcryptjs';
 const userService = new UserService();
 
 export const UserController = {
@@ -10,6 +10,11 @@ export const UserController = {
     try {
       const validatedData = registerSchema.parse(req.body);
       
+      // Hash password before saving
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(validatedData.password, salt);
+      validatedData.password = hashedPassword;
+
       const user = await userService.createUser(validatedData);
       
       const { password, ...userWithoutPassword } = user;
@@ -105,15 +110,9 @@ export const UserController = {
         page: Number(page),
         limit: Number(limit)
       });
-      
-      // Remove passwords from response
-      const usersWithoutPasswords = users.map(user => {
-        const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
-      
+
       res.json({
-        users: usersWithoutPasswords,
+        users,
         page: Number(page),
         limit: Number(limit)
       });

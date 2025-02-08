@@ -64,7 +64,7 @@
     },
     "/api/sales": {
       "post": {
-        "summary": "Create a new sale",
+        "summary": "Create a new sale opportunity",
         "security": [
           {
             "bearerAuth": []
@@ -76,42 +76,36 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["customerId", "amount", "products"],
+                "required": ["customerId", "title", "description", "value"],
                 "properties": {
                   "customerId": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "ID of the customer this sale is associated with"
                   },
-                  "amount": {
+                  "title": {
+                    "type": "string",
+                    "description": "Title of the sale opportunity",
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Detailed description of the sale opportunity"
+                  },
+                  "value": {
                     "type": "number",
+                    "description": "Monetary value of the sale",
                     "minimum": 0
-                  },
-                  "products": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "required": ["name", "quantity", "price"],
-                      "properties": {
-                        "name": {
-                          "type": "string"
-                        },
-                        "quantity": {
-                          "type": "integer",
-                          "minimum": 1
-                        },
-                        "price": {
-                          "type": "number",
-                          "minimum": 0
-                        }
-                      }
-                    }
                   },
                   "status": {
                     "type": "string",
-                    "enum": ["pending", "completed", "cancelled"],
-                    "default": "pending"
+                    "enum": ["NEW", "QUALIFIED", "PROPOSITION", "NEGOTIATION", "CLOSED_WON", "CLOSED_LOST"],
+                    "default": "NEW",
+                    "description": "Current status of the sale"
                   },
-                  "notes": {
-                    "type": "string"
+                  "expectedClosingDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Expected date when the sale will close"
                   }
                 }
               }
@@ -126,345 +120,46 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "id": {
+                    "message": {
                       "type": "string"
                     },
-                    "customerId": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "products": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string"
-                          },
-                          "quantity": {
-                            "type": "integer"
-                          },
-                          "price": {
-                            "type": "number"
-                          }
-                        }
-                      }
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "notes": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      },
-      "get": {
-        "summary": "Get all sales",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "page",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            },
-            "description": "Page number"
-          },
-          {
-            "in": "query",
-            "name": "limit",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            },
-            "description": "Number of items per page"
-          },
-          {
-            "in": "query",
-            "name": "customerId",
-            "schema": {
-              "type": "string"
-            },
-            "description": "Filter by customer ID"
-          },
-          {
-            "in": "query",
-            "name": "status",
-            "schema": {
-              "type": "string",
-              "enum": ["pending", "completed", "cancelled"]
-            },
-            "description": "Filter by status"
-          },
-          {
-            "in": "query",
-            "name": "startDate",
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "description": "Filter by start date"
-          },
-          {
-            "in": "query",
-            "name": "endDate",
-            "schema": {
-              "type": "string",
-              "format": "date"
-            },
-            "description": "Filter by end date"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of sales",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "customerId": {
-                            "type": "string"
-                          },
-                          "amount": {
-                            "type": "number"
-                          },
-                          "products": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "name": {
-                                  "type": "string"
-                                },
-                                "quantity": {
-                                  "type": "integer"
-                                },
-                                "price": {
-                                  "type": "number"
-                                }
-                              }
-                            }
-                          },
-                          "status": {
-                            "type": "string"
-                          },
-                          "notes": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          }
-                        }
-                      }
-                    },
-                    "pagination": {
+                    "sale": {
                       "type": "object",
                       "properties": {
-                        "total": {
-                          "type": "integer"
+                        "id": {
+                          "type": "string"
                         },
-                        "pages": {
-                          "type": "integer"
+                        "customerId": {
+                          "type": "string"
                         },
-                        "page": {
-                          "type": "integer"
+                        "title": {
+                          "type": "string"
                         },
-                        "limit": {
-                          "type": "integer"
+                        "description": {
+                          "type": "string"
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "status": {
+                          "type": "string"
+                        },
+                        "assignedTo": {
+                          "type": "string"
+                        },
+                        "expectedClosingDate": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time"
                         }
                       }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
-      }
-    },
-    "/api/sales/{id}": {
-      "parameters": [
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": {
-            "type": "string"
-          },
-          "description": "Sale ID"
-        }
-      ],
-      "get": {
-        "summary": "Get sale by ID",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Sale details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "customerId": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "products": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string"
-                          },
-                          "quantity": {
-                            "type": "integer"
-                          },
-                          "price": {
-                            "type": "number"
-                          }
-                        }
-                      }
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "notes": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Sale not found"
-          }
-        }
-      },
-      "put": {
-        "summary": "Update sale",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "status": {
-                    "type": "string",
-                    "enum": ["pending", "completed", "cancelled"]
-                  },
-                  "notes": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Sale updated successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "customerId": {
-                      "type": "string"
-                    },
-                    "amount": {
-                      "type": "number"
-                    },
-                    "products": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "name": {
-                            "type": "string"
-                          },
-                          "quantity": {
-                            "type": "integer"
-                          },
-                          "price": {
-                            "type": "number"
-                          }
-                        }
-                      }
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "notes": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
                     }
                   }
                 }
@@ -472,13 +167,33 @@
             }
           },
           "400": {
-            "description": "Invalid input"
+            "description": "Invalid request data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
-          },
-          "404": {
-            "description": "Sale not found"
+            "description": "Unauthorized - Invalid or missing authentication token"
           }
         }
       }

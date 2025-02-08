@@ -14,7 +14,6 @@ export const errorHandler = (
       path: req.path,
       method: req.method,
     });
-  
     if (error instanceof CustomError) {
       res.status(error.statusCode).json({
         error: {
@@ -22,6 +21,12 @@ export const errorHandler = (
           message: error.message,
           details: error.details,
         }
+      });
+      res.status(500).json({
+        error: {
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Internal Server Error',
+        },
       });
       return;
     }

@@ -3,7 +3,12 @@ import { CustomError } from '../utils/custom-error';
 
 export class SaleService {
   async createSale(saleData: Partial<ISale>): Promise<ISale> {
-    const sale = new Sale(saleData);
+    const sale = new Sale({
+      ...saleData,
+      status: SaleStatus.NEW,
+      notes: [],
+      statusHistory: []
+    });
     return await sale.save();
   }
 
@@ -37,14 +42,13 @@ export class SaleService {
   async listSales(filters: Record<string, any> = {}, page: number = 1, limit: number = 10): Promise<{ sales: ISale[]; total: number; }> {
     const skip = (page - 1) * limit;
     
-    const query = Sale.find(filters)
-      .sort({ updatedAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
     const [sales, total] = await Promise.all([
-      query.exec(),
-      Sale.countDocuments(filters)
+      Sale.find(filters)
+        .sort({ updatedAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      Sale.countDocuments(filters).exec()
     ]);
 
     return { sales, total };
@@ -88,14 +92,17 @@ export class SaleService {
   }
 
   async getSalesByCustomer(customerId: string): Promise<ISale[]> {
-    return await Sale.find({ customerId }).sort({ updatedAt: -1 });
+    const query = Sale.find({ customerId });
+    return await query.sort({ updatedAt: -1 }).lean();
   }
 
   async getSalesByAssignee(assignedTo: string): Promise<ISale[]> {
-    return await Sale.find({ assignedTo }).sort({ updatedAt: -1 });
+    const query = Sale.find({ assignedTo });
+    return await query.sort({ updatedAt: -1 }).lean();
   }
 
   async getSalesByStatus(status: SaleStatus): Promise<ISale[]> {
-    return await Sale.find({ status }).sort({ updatedAt: -1 });
+    const query = Sale.find({ status });
+    return await query.sort({ updatedAt: -1 }).lean();
   }
 }
