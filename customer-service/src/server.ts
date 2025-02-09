@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use('/api/customers', customerRoutes);
+app.use('/customers', customerRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   try {
